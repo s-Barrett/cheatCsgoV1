@@ -1,0 +1,4 @@
+﻿  esp.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+C:\Users\sambb\source\repos\CSGOCheatv1\CSGOCheatv1\Dependencies\include\GLFW\glfw3.h(123): message : see previous definition of 'APIENTRY'
+  CSGOCheatv1.vcxproj -> C:\Users\sambb\source\repos\CSGOCheatv1\Debug\CSGOCheatv1.exe
