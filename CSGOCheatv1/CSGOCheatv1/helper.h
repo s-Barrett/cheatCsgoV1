@@ -2,34 +2,46 @@
 #include <Windows.h>
 #include "datatypes.h"
 
-void ConvertToRange(Vec2& Point) {
+// Constants for screen dimensions
+const float SCREEN_WIDTH = 1920.0f;
+const float SCREEN_HEIGHT = 1080.0f;
 
-	Point.X /= 1920.0f;
-	Point.X *= 2.0f;
-	Point.X -= 1.0f;
+// Converts screen coordinates to normalized device coordinates (-1 to 1 range)
+void ConvertToRange(Vec2& point) {
+    // Normalize X coordinate
+    point.x /= SCREEN_WIDTH;
+    point.x *= 2.0f;
+    point.x -= 1.0f;
 
-	Point.Y /= 1080.0f;
-	Point.Y *= 2.0f;
-	Point.Y -= 1.0f;
-
+    // Normalize Y coordinate 
+    point.y /= SCREEN_HEIGHT;
+    point.y *= 2.0f;
+    point.y -= 1.0f;
 }
 
-bool WorldToScreen(const Vec3& VecOrigin, Vec2& VecScreen, float* Matrix) {
+// Projects 3D world coordinates to 2D screen coordinates using view matrix
+bool WorldToScreen(const Vec3& vecOrigin, Vec2& vecScreen, float* matrix) {
+    // Calculate screen coordinates using matrix multiplication
+    vecScreen.x = vecOrigin.x * matrix[0] + vecOrigin.y * matrix[1] + vecOrigin.z * matrix[2] + matrix[3];
+    vecScreen.y = vecOrigin.x * matrix[4] + vecOrigin.y * matrix[5] + vecOrigin.z * matrix[6] + matrix[7];
+    
+    // Calculate W component for perspective division
+    float w = vecOrigin.x * matrix[12] + vecOrigin.y * matrix[13] + vecOrigin.z * matrix[14] + matrix[15];
 
-	VecScreen.X = VecOrigin.X * Matrix[0] + VecOrigin.Y * Matrix[1] + VecOrigin.Z * Matrix[2] + Matrix[3];
-	VecScreen.Y = VecOrigin.X * Matrix[4] + VecOrigin.Y * Matrix[5] + VecOrigin.Z * Matrix[6] + Matrix[7];
-	float W = VecOrigin.X * Matrix[12] + VecOrigin.Y * Matrix[13] + VecOrigin.Z * Matrix[14] + Matrix[15];
+    // Check if point is behind camera
+    if (w < 0.0f)
+        return false;
 
-	if (W < 0.0f)
-		return false;
+    // Perform perspective divide to get normalized device coordinates
+    Vec2 ndc;
+    ndc.x = vecScreen.x / w;
+    ndc.y = vecScreen.y / w;
 
-	Vec2 NDC;
-	NDC.X = VecScreen.X / W;
-	NDC.Y = VecScreen.Y / W;
+    // Convert to screen coordinates
+    vecScreen.x = (SCREEN_WIDTH / 2 * ndc.x) + (ndc.x + SCREEN_WIDTH / 2);
+    vecScreen.y = (SCREEN_HEIGHT / 2 * ndc.y) + (ndc.y + SCREEN_HEIGHT / 2);
 
-	VecScreen.X = (1920 / 2 * NDC.X) + (NDC.X + 1920 / 2);
-	VecScreen.Y = (1080 / 2 * NDC.Y) + (NDC.Y + 1080 / 2);
-
-	ConvertToRange(VecScreen);
-	return true;
+    // Convert to normalized range
+    ConvertToRange(vecScreen);
+    return true;
 }
